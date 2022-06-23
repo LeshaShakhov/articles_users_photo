@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useState} from "react";
 import {Card, Theme} from "@mui/material";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
@@ -10,12 +10,9 @@ import createTheme from "@mui/material/styles/createTheme";
 import orange from "@mui/material/colors/orange";
 import green from "@mui/material/colors/green";
 import blue from "@mui/material/colors/blue";
+import {MODAL_TYPES, UPDATE_OR_ADD_TYPES} from "../Modals/GlobalModal";
+import {APIArticleType} from "../../types/types";
 
-
-export type ArticlePropsType = {
-    title: string,
-    body: string
-}
 const themes = [createTheme({
     palette: {
         primary: orange ,
@@ -35,7 +32,6 @@ const themes = [createTheme({
         text: {primary: blue["500"]}
     },
 })]
-
 function* createColorIterator ():IterableIterator<Theme> {
     let i = 0;
     while (i < themes.length) {
@@ -47,7 +43,8 @@ function* createColorIterator ():IterableIterator<Theme> {
 let colors = createColorIterator()
 let initialColor = colors.next().value
 
-export const Article: React.FC<ArticlePropsType> = ({title, body}) => {
+export const Article: React.FC<ArticlePropsType> = ({article, showModal}) => {
+    const { title, body } = article
     const [colorState, setColorState] = useState(initialColor);
     const onChangeTheme = () => {
         const color = colors.next()
@@ -58,6 +55,26 @@ export const Article: React.FC<ArticlePropsType> = ({title, body}) => {
             setColorState(color.value)
         }
     }
+
+    const createInfoModal = () => {
+        showModal(MODAL_TYPES.VIEW_ARTICLE_MODAL, {
+            modalTitle: 'Article Info',
+            title: title,
+            body: body
+        });
+    };
+
+    const createUpdateModal = () => {
+        showModal(
+            MODAL_TYPES.ADD_OR_UPDATE_ARTICLE_MODAL,
+            {
+                modalTitle: 'Update Article',
+                type: UPDATE_OR_ADD_TYPES.UPDATE,
+                article: article,
+                btnText: 'Update Article'
+            }
+        )
+    };
     return (
         <ThemeProvider theme={colorState}>
             <Card sx={{ minWidth: 245}}>
@@ -72,7 +89,12 @@ export const Article: React.FC<ArticlePropsType> = ({title, body}) => {
                 </CardContent>
                 <CardActions>
                     <ButtonGroup variant="outlined" size='small' aria-label="View Article or Change color theme">
-                        <Button>View</Button>
+                        <Button onClick={createInfoModal}>
+                            View
+                        </Button>
+                        <Button onClick={createUpdateModal}>
+                            Edit
+                        </Button>
                         <Button onClick={onChangeTheme}>Change Color</Button>
                     </ButtonGroup>
                 </CardActions>
@@ -80,3 +102,8 @@ export const Article: React.FC<ArticlePropsType> = ({title, body}) => {
         </ThemeProvider>
     );
 };
+
+type ArticlePropsType = {
+    article: APIArticleType
+    showModal:(modalType: string, modalProps: any) => void
+}
